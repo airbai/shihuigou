@@ -1,0 +1,10 @@
+body{text-align:center;}
+h1{font-size:18px;text-align:center;}
+#guide{width:150px;height:20px;-webkit-border-radius: 5px;background:#F6BC5D;display:none;text-align:center;margin:0 auto;}
+#status{width:150px;height:25px; line-height:20px; font-weight:bold; font-size:12px;}
+.about{text-indent: 2em;font-size:14px;line-height: 20px;}
+#footer{width:320px;background-color:#E5ECF9;border:#36C solid 1px;font-size:14px;text-align:center;margin:0 auto;padding:10px inherit;-webkit-border-radius: 5px;}
+#content{width:380px;text-align:left;margin:0 auto;}
+h3{background-color:#E5ECF9;border-top:1px #36C solid;font-size:18px;}
+#close{font-size:12px;color:#00F;cursor:pointer;margin-top:50px;margin-bottom:10px;text-align:center;}
+#close:hover{color:red;}

@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>详细</title>
+    <script type="text/javascript" src="./js/lib/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="./js/lib/highcharts.js"></script>
+    <script src="js/lib/jquery-ui-1.8.17.custom.min.js" type="text/javascript"></script>
+    <script src="js/lib/jquery.ui.stars.min.js" type="text/javascript"></script>
+    <script src="js/lib/jquery.url.js" type="text/javascript"></script>
+    <link href="css/jquery.ui.stars.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/popup.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        $(function () {
+            var background = chrome.extension.getBackgroundPage();
+            chrome.windows.getCurrent(function (w) {
+                chrome.tabs.query({
+                    active: true,
+                    windowId: w.id
+                }, function (tabs) {
+                    if (tabs.length > 0) {
+                        $('body').width(350).height(250);
+                        var _t = tabs[0];
+                        var confKey = background.Site.url2key(null, _t.url);
+                        var parsedUrl = $.url(_t.url);
+                        var originalUrl = parsedUrl.attr('protocol') + "://" + parsedUrl.attr('host') + parsedUrl.attr('path');
+                        console.log(originalUrl);
+                        if (confKey && background.exports.work.checkUrl(confKey, originalUrl)) {
+                            //已有数据 画图
+                            drawChart(background.exports.work.getPrices(confKey, originalUrl), 'chart_div');
+                            var rank = background.exports.work.getRank(confKey, originalUrl);
+                            var starWrapper = $('div[c=rank]');
+                            console.log(rank);
+
+                            setRank(rank, starWrapper);
+                            background.Site.getPageInfo({
+                                //tab: _t,
+                                url: originalUrl,
+                                success: function (_info) {
+                                    //更新本url相关的数据信息
+                                    _info.rank = rank;
+                                    console.log(JSON.stringify(_info));
+                                    background.Site.handle.updateSiteData(originalUrl, _info);
+                                }
+                            });
+                            $('#action_div').append(
+                                $('<button>').text('删除关注').attr('class', 'btn btn-primary').click(function () {
+                                    $(this).text('处理中').attr('disabled', 'true');
+                                    background.exports.work.delUrl(confKey, originalUrl);
+                                    location.reload(true);
+                                })
+                            );
+                        } else {
+
+                            //stars
+                            $('div[c=rank]').stars('select', 4).stars({
+                                //captionEl: $(this).prev('div').find('span[c=rankvalue]')
+                                captionEl: $('#captionEl')
+                            });
+
+                            //没有关注 显示添加关注选项
+                            $('#action_div').append(
+                            //$('<button>').text('加关注').attr('class', 'btn-coll').click(function () {
+                                $('<button>').text('加关注').attr('class', 'btn btn-primary').click(function () {
+                                    $(this).text('处理中').attr('disabled', 'true');
+                                    background.exports.work.addUrl(confKey, originalUrl);
+                                    background.Site.getPageInfo({
+                                        tab: _t,
+                                        success: function (_info) {
+                                            //更新本url相关的数据信息
+                                            _info.rank = getStarValue('rankStar');
+
+                                            background.Site.handle.updateSiteData(originalUrl, _info);
+                                            location.reload(true);
+
+                                            console.log('hide jingdongAssistBarb');
+                                            chrome.extensions.tabs.executeScripts(null, {
+                                                code: 'document.getElementById(\'jingdongAssistBar\').style.display = \'none\''
+                                            }, function () {
+                                                console.log('hide jingdongAssistBar');
+                                            });
+                                        }
+                                    });
+                                })
+                            );
+                        }
+                    }
+                });
+            });
+
+            $('div[c=rank]').stars({
+                inputType: "select",
+                split: 1
+            });
+
+            function drawChart(data, divId) {
+                var xAxis = [], yAxis = [], time;
+                for (var i = 0; i < data.length; i++) {
+                    if (data[i][1] > -1) {//去掉无报价的项
+                        time = new Date(data[i][0]);
+                        xAxis.push(time.getDate() + '/' + (time.getMonth() + 1));
+                        yAxis.push(data[i][1] - 0);
+                    }
+                }
+                return new Highcharts.Chart({
+                    chart: {
+                        renderTo: divId,
+                        defaultSeriesType: 'line',
+                        height: 200,
+                        width: 300,
+                        spacingTop: 20,
+                        marginRight: 80,
+                        marginBottom: 25
+                    },
+                    title: {
+                        text: '历史价格',
+                        x: -20 //center
+                    }, /*
+                    subtitle: {
+                        text: 'Source: WorldClimate.com',
+                        x: -20
+                    },*/
+                    xAxis: {
+                        categories: xAxis
+                    },
+                    yAxis: {
+                        title: {
+                            text: '价格'
+                        },
+                        plotLines: [{
+                            value: 0,
+                            width: 1,
+                            color: '#808080'
+                        }]
+                    },
+                    tooltip: {
+                        formatter: function () {
+                            return '<b>' + this.series.name + '</b><br/>' +
+                            this.x + ': ￥' + this.y + '';
+                        }
+                    },
+                    legend: {
+                        layout: 'vertical',
+                        align: 'right',
+                        verticalAlign: 'top',
+                        x: -10,
+                        y: 100,
+                        borderWidth: 0
+                    },
+                    series: [{
+                        name: '价格',
+                        data: yAxis
+                    }]
+                });
+            }
+
+            function setRank(rank, starWraper) {
+                $(starWraper).stars('select', rank).stars({
+                    captionEl: $('#captionEl')
+                });
+            }
+
+            function getStarValue(starwrapperId) {
+                var ui = $("#" + starwrapperId).data("stars");
+                // Read options
+                var currValue = ui.options.value; // Get current Value
+
+                return currValue || 4;
+            }
+
+            $('#btnOptions').attr('href', chrome.extension.getURL('/options.html'));
+        });
+    </script>
+    <style>
+        body{
+            width: 100px;
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+<div id="pagebody">
+<div id="chart_div"></div>
+<div style="height:20px"><span id="captionEl" c="rankvalue"></span></div>
+<div c="rank" id="rankStar">
+    <select name="selrate">
+        <option value="1">长期收藏</option>
+        <option value="2">想买类似的</option>
+        <option value="3">先关注一下</option>
+        <option value="4">近期想买的</option>
+        <option value="5">立刻想买的</option>
+    </select>
+</div>
+<div id="action_div"></div>
+</div>
+<div>
+    <a id="btnOptions" target="_blank" href="#">管理关注产品</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,216 @@
+﻿<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>京东时惠购</title>
+    <script type="text/javascript" src="js/lib/jquery-1.7.1.min.js"></script>
+    <script src="js/lib/jquery.tmpl.min.js" type="text/javascript"></script>
+    <script src="js/lib/jquery-ui-1.8.17.custom.min.js" type="text/javascript"></script>
+    <script src="js/lib/date.js" type="text/javascript"></script>
+    <script src="js/lib/jquery.ui.stars.min.js" type="text/javascript"></script>
+    <script src="js/lib/jquery.linq-vsdoc.js" type="text/javascript"></script>
+    <script src="js/lib/jquery.linq.js" type="text/javascript"></script>
+    <script src="js/lib/scroll.jquery.js" type="text/javascript"></script>
+    <link href="css/jquery.ui.stars.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/page.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="js/options.js"></script>
+    <script src="js/lib/jquery.wookmark.js" type="text/javascript"></script>
+    <script src="js/lib/jquery.masonry.min.js" type="text/javascript"></script>
+    <link href="css/wookmark.css" rel="stylesheet" type="text/css" />
+    <script>
+//        var aaa = {};
+//        $.Enumerable.From(sites).ForEach(function (v) {
+//            var products = v.Value;
+//            $.Enumerable.From(products).ForEach(function (p) {
+//                if (p && p.Value && $.trim(p.Value.gift) != '') {
+//                    aaa[p.Key] = p.Value;
+//                }
+//            });
+//        });
+//        var results = {
+//            '360buy.com': aaa
+//        };
+
+//        var aaa = {};
+//        var b = $.Enumerable.From(sites).Skip(1).Take(10).ForEach(function (p) {
+//            if (p && p.Value && $.trim(p.Key) != '') {
+//                aaa[p.Key] = p.Value;
+//            }
+//        });
+//        var results = {
+//            '360buy.com': b
+//        };
+    </script>
+    <script id="trackItemTmpl" type="text/x-jquery-tmpl">    
+    <tr>
+        <td>
+            <div style="height:20px"><span c="rankvalue"></span></div>
+            <div c="rank">
+                <select name="selrate">
+                    <option value="1">长期收藏</option>
+                    <option value="2">想买类似的</option>
+                    <option value="3">先关注一下</option>
+                    <option value="4">近期想买的</option>
+                    <option value="5">立刻想买的</option>
+                </select>
+            </div>
+            <div>
+            <input type="button" value="×" c="del" title="取消关注" />
+            </div>
+        </td>
+        <td>
+            ${site}
+        </td>
+        <td>
+            <a href="${url}" />
+            <a href="${unionUrl}" target="_blank" class="itemUrl">${name}<br/><img style="width:52px" src="${imgUrl}" /></a>
+        </td>
+        <td>
+            <span class="longDateFormat">${date}</span>
+        </td>
+        <td>
+            ${price}
+        </td>
+        <td>
+            <span>${reduction.quantity}</span><span class="btn-danger">${reduction.percent}</span>
+        </td>
+        <td>
+            ${curprice}
+        </td>
+        <td style="display:none">
+            ${stock}
+        </td>
+        <td>
+            {{html coupon}}
+        </td>
+        <td>
+            <div class="i-largess">
+            {{html gift}}
+            </div>
+        </td>
+        <td style="display:none">
+            ${reviews.goodPercent}%/总${reviews.total}<br/>好${reviews.good}/中${reviews.avg}/差${reviews.bad}
+        </td>
+        <td class="set">
+                <div class="m1 options">
+            <a href="${unionUrl}" target="_blank"><img src="css/images/button_check.gif" width="87" height="29" border="0" alt=""></a>
+            <a c="setNotice" href="#" style="display:none">提醒设置</a></td> </tr> 
+    </script>
+    <script id="trackItemWaterfall" type="text/x-jquery-tmpl">
+<li><span class="img2"><a href="${unionUrl}" target="_blank">
+        <img src="${imgUrl}" width="150" height="150" border="0"  title="${name}"></a></span><div title="${name}"
+            class="title-i">
+            <a href="${unionUrl}" target="_blank"><p>${name}</p></a></div>
+        <span class="price">原价：￥${curprice}，<b></b></span>{{html reduction.quatityText}}<div class="btn-i">
+            <span class="go-look"><a
+                href="${unionUrl}" target="_blank" >立即去看看</a><b></b></span><a
+                href="${url}"></a>{{html bought}}<span class="yon"><a c="waterfalldel" title="取消关注">×</a><b></b></span>
+        </div>
+    </li>
+    </script>
+    <script id="noticeSettingTmpl" type="text/x-jquery-tmpl">
+<div class="blue">提醒设置：</div>
+<form>
+                    <dl c="notice">
+                        <dd>
+                            <div class="checkbox">
+                    <label class="${coupon.enabled}"><input type="checkbox" name="coupon" ${coupon.enabled} onclick="setCheck(this)" onfocus="this.blur()"></label></div>
+                            <span class="check">包含赠劵</span></dd>
+                        <dd>
+                            <div class="checkbox">
+                                <label class="${cheapest.enabled}">
+                                    <input type="checkbox" id="check_1" name="cheapest" ${cheapest.enabled} onclick="setCheck(this)" onfocus="this.blur()">&nbsp;</label></div>
+                            <span class="check">降价</span></dd>
+                        <dd class="dd1">
+                            <div class="checkbox">
+                                <label class="${reduction.enabled}">
+                                    <input type="checkbox" id="check_1" name="reduction" ${reduction.enabled} onclick="setCheck(this)" onfocus="this.blur()">&nbsp;</label></div>
+                            <span class="check"><span class="mt">低于</span></span><input class="price_input" name="reductionTo" value="${reduction.param}" maxlength="5" type="text" /><span class="yuan">元</span></dd>
+                        <dd class="dd1"><div class="checkbox">
+                                <label class="${onSale.enabled}">
+                                    <input type="checkbox" id="check_1" name="onSale" ${onSale.enabled} onclick="setCheck(this)" onfocus="this.blur()">&nbsp;</label></div>
+                            <span class="check"><span class="mt">降价</span></span><input class="price_input" name="onSalePercent" value="${onSale.param}" maxlength="2" 
+                                type="text" /><span class="yuan">%</span></dd>
+                    </dl>
+                    <div class="bz" style="display:inline">
+                        <span class="blue">备注</span><input name ="notes" rows="3" maxlength="50" value="${notes}" class="bz_input" type="text" />
+                        <input class="save" type="button" /> 
+                        </div>
+                        <div c="share" style="display:inline">
+                        <!-- JiaThis Button BEGIN -->
+                        <div id="ckepop">
+	                        <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt" target="_blank"><img src="http://v2.jiathis.com/code_mini/images/btn/v1/jiathis1.gif" border="0" /></a>
+                        </div>
+                        <script type="text/javascript" src="http://v2.jiathis.com/code_mini/jia.js" charset="utf-8"></script>
+            <!-- JiaThis Button END -->
+            </div>
+
+</form>
+            
+    </script>
+    <script id="buyTmpl" type="text/x-jquery-tmpl">
+<span class="yon" title="点击设为已/未购"><a>[√]已购</a><b></b></span>
+    </script>
+    <script id="notbuyTmpl" type="text/x-jquery-tmpl">
+<span class="yon" title="点击设为已/未购"><a>[   ]未购</a><b></b></span>
+    </script>
+</head>
+<body>
+    <div class="product">
+        <div id="" class="p-top">
+            <div id="" class="p-top1">
+                <span class="p_logo">
+                    <img src="css/images/p_logo.gif" width="119" height="23" border="0" alt=""></span><span><a
+                        class="btn btn-primary" target="_blank" href="mailto:shihuigou@126.com?subject=京东时惠购">建议反馈</a></span>|<span><a target="_blank" href="http://shihuigou.net/?page_id=27">帮助</a></span>
+            </div>
+            <div class="p-top2">
+                <ul>
+                    <li>显示：</li>
+                    <li>
+                        <div class="checkbox">
+                            <label for="check_1" class="">
+                                <input type="checkbox" id="ckbAll" value="all" onclick="setCheck(this)" onfocus="this.blur()">&nbsp;</label></div>
+                        <span class="check">全部</span></li>
+                    <li>
+                        <div class="checkbox">
+                            <label for="check_1" class="">
+                                <input type="checkbox" id="ckbReduction" value="reduction" onclick="setCheck(this)"
+                                    onfocus="this.blur()">&nbsp;</label></div>
+                        <span class="check">降价</span></li>
+                    <li>
+                        <div class="checkbox">
+                            <label for="check_1" class="">
+                                <input type="checkbox" id="ckbCoupon" value="coupon" onclick="setCheck(this)" onfocus="this.blur()">&nbsp;</label></div>
+                        <span class="check">赠劵</span></li>
+                    <li>
+                        <div class="checkbox">
+                            <label for="check_1" class="">
+                                <input type="checkbox" id="ckbGift" value="gift" onclick="setCheck(this)" onfocus="this.blur()">&nbsp;</label></div>
+                        <span class="check">赠品</span></li>
+                </ul>
+                <div class="btn_l fr">
+                    <span class="pic-ar" id="btnPic" title="图片排列显示"><a>图片排列</a></span><span class="list-ar" id="btnList" title="列表排列显示"><a>列表排列</a></span>
+                </div>
+            </div>
+        </div>
+        <div class="p2_cont" id="picView">
+            <ul id="waterfall" class="dy">
+            </ul>
+        </div>
+        <div id="listView" style="display: none">
+        </div>
+    </div>
+    <div id="msgInfoWrap">
+    </div>
+
+
+
+
+
+
+
+
+    
+
+</body>
+</html>
